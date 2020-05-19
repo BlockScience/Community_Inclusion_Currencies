@@ -40,7 +40,9 @@ partial_state_update_block = {
         },
         'variables': {
         'withdraw': update_withdraw,
-        'network':update_network_withraw
+        'network':update_network_withraw,
+        'operatorFiatBalance':update_operatorFiatBalance_withdraw,
+        'operatorCICBalance':update_operatorCICBalance_withdraw
         }
     },
     # Operator

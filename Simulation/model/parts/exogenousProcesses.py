@@ -19,10 +19,10 @@ def startingBalance(params, step, sL, s, _input):
     division =  timestep % 31  == 0
 
     if timestep == 1:
-        for i in agents:
+        for i in clusters:
             startingBalance[i] = network.nodes[i]['tokens']
     elif division == True:
-        for i in agents:
+        for i in clusters:
             startingBalance[i] = network.nodes[i]['tokens']
     else:
         startingBalance = s['startingBalance']
@@ -61,7 +61,7 @@ def redCrossDrop(params, step, sL, s, _input):
     
     timestep = s['timestep']
 
-    division =  timestep % 30  == 0
+    division =  timestep % redCrossDripFrequency  == 0
 
     if division == True:
         fiatBalance = fiatBalance + drip

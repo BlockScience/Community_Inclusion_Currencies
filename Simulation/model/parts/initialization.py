@@ -4,19 +4,22 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from .supportingFunctions import *
+from .subpopulation_clusters import *
 
 # Assumptions:
 # Amount received in shilling when withdraw occurs
 leverage = 1 
 
 # process time
-process_lag = 7 # timesteps
+process_lag = 15 # timesteps
 
 # red cross drip amount
-drip = 4000
+drip = 10000
 
-# system initialization
-agents = ['a','b','c','d','e','f','g','h','i','j','k','l','m','o','p']
+# starting operatorFiatBalance
+initialOperatingFiatBalance = 100000
+
+redCrossDripFrequency = 90 # days
 
 # system actors
 system = ['external','cic']
@@ -27,26 +30,11 @@ chama = ['chama_1','chama_2','chama_3','chama_4']
 # traders
 traders = ['ta','tb','tc'] #only trading on the cic. Link to external and cic not to other agents
 
-allAgents = agents + system
-
-mixingAgents = ['a','b','c','d','e','f','g','h','i','j','k','l','m','o','p','external']
-
-UtilityTypesOrdered ={'Food/Water':1,
-                    'Fuel/Energy':2,
-                    'Health':3,
-                    'Education':4,
-                    'Savings Group':5,
-                    'Shop':6}
-
-utilityTypesProbability = {'Food/Water':0.6,
-                    'Fuel/Energy':0.10,
-                    'Health':0.03,
-                    'Education':0.015,
-                    'Savings Group':0.065,
-                    'Shop':0.19}
+allAgents = clusters + system
 
 
-R0 =  500 #thousand xDAI
+
+R0 =  40000 #xDAI
 kappa = 4 #leverage
 P0 = 1/100 #initial price
 S0 = kappa*R0/P0
@@ -64,11 +52,11 @@ def create_network():
     network = nx.DiGraph()
 
     # Add nodes for n participants plus the external economy and the cic network
-    for i in agents:
-        network.add_node(i,type='Agent',tokens=400, native_currency = int(np.random.uniform(low=20, high=500, size=1)[0]))
+    for i in clusters:
+        network.add_node(i,type='Agent',tokens=clustersMedianSourceBalance[int(i)], native_currency = int(np.random.uniform(low=clusters1stQSourceBalance[int(i)], high=clusters3rdQSourceBalance[int(i)], size=1)[0])) 
         
         
-    network.add_node('external',type='Contract',native_currency = 100000000,tokens = 0,delta_native_currency = 0, pos=(1,50))
+    network.add_node('external',type='Cloud',native_currency = 100000000,tokens = 0,delta_native_currency = 0, pos=(1,50))
     network.add_node('cic',type='Contract',tokens= S0, native_currency = R0,pos=(50,1))
 
     for i in chama:
@@ -92,12 +80,11 @@ def create_network():
                 
     # Create bi-directional edges between some agent and a chama node representing membershio      
     for i in chama:
-        for j in agents:
+        for j in clusters:
             if np.random.choice(['Member','Non_Member'],1,p=[.50,.50])[0] == 'Member':
                 network.add_edge(i,j)
 
     # Type colors 
-    colors = ['Red','Blue','Green','Orange']
     color_map = []
     for i in network.nodes:
         if network.nodes[i]['type'] == 'Agent':

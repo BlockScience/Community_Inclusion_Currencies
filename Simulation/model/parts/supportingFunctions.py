@@ -173,36 +173,36 @@ def DictionaryMergeAddition(inflow,outflow):
         
     return merged
 
-def mint_burn_logic_control(ideal,actual,variance,fiat,fiat_variance,ideal_fiat):
+def mint_burn_logic_control(idealCIC,actualCIC,varianceCIC,actualFiat,varianceFiat,idealFiat):
     '''
     Inventory control function to test if the current balance is in an acceptable range. Tolerance range 
     '''
-    if ideal - variance <= actual <= ideal + (2*variance):
+    if idealFiat - varianceFiat <= actualFiat <= idealFiat + (2*varianceFiat):
         decision = 'none'
         amount = 0
     else:
-        if (ideal + variance) > actual:
-            decision = 'mint'
-            amount = (ideal + variance) - actual
+        if (idealFiat + varianceFiat) > actualFiat:
+            decision = 'burn'
+            amount = (idealFiat + varianceFiat) - actualFiat
         else:
             pass
-        if actual > (ideal + variance):
-            decision = 'burn'
-            amount = actual - (ideal + variance) 
+        if actualFiat > (idealFiat + varianceFiat):
+            decision = 'mint'
+            amount = actualFiat - (idealFiat + varianceFiat) 
         else:
             pass
 
     if decision == 'mint':
-        if fiat < (ideal_fiat - fiat_variance):
-            if amount > fiat:
+        if actualCIC < (idealCIC - varianceCIC):
+            if amount > actualCIC:
                 decision = 'none'
                 amount = 0
             else:
                 pass
     if decision == 'none':
-        if fiat < (ideal_fiat - fiat_variance):
+        if actualCIC < (idealCIC - varianceCIC):
             decision = 'mint'
-            amount = (ideal_fiat-fiat_variance)
+            amount = (idealCIC-varianceCIC)
         else:
             pass
     

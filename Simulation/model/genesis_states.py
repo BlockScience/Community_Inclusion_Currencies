@@ -13,7 +13,7 @@ genesis_states = {
     'withdraw':{},
     'outboundAgents':[],
     'inboundAgents':[],
-    'operatorFiatBalance': R0,
+    'operatorFiatBalance': initialOperatingFiatBalance,
     'operatorCICBalance': S0,
     'fundsInProcess': {'timestep':[],'decision':[],'cic':[],'shilling':[]},
     'totalDistributedToAgents':0,
