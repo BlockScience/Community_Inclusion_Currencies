@@ -296,7 +296,6 @@ def plot_median_with_quantiles(df,aggregate_dimension,x, y):
     aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
     x = x axis variable for plotting
     y = y axis variable for plotting
-
     Example run:
     plot_median_with_quantiles(df,'timestep','timestep','AggregatedAgentSpend')
     '''
@@ -323,7 +322,6 @@ def plot_median_with_quantiles_annotation(df,aggregate_dimension,x, y):
     aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
     x = x axis variable for plotting
     y = y axis variable for plotting
-
     Example run:
     plot_median_with_quantiles(df,'timestep','timestep','AggregatedAgentSpend')
     '''
@@ -439,4 +437,3 @@ def param_plot(results,state_var_x, state_var_y, parameter, save_plot = False,**
         lgd = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         #title_text = 'Market Volatility versus Normalized Liquid Token Supply for All Runs'
         plt.title(title_text)
-        plt.savefig('static/images/' + filename, bbox_extra_artists=(lgd,), bbox_inches='tight')

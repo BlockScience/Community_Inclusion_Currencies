@@ -9,9 +9,11 @@ from .subpopulation_clusters import *
 
 
 # Parameters
-agentsMinus = 2
+agentsMinus = 1
 # percentage of balance a user can redeem
 redeemPercentage = 0.5
+# maximum withdraw amount per 30 days
+maxAmountofWithdraw = 30000
 
 # Behaviors
 def choose_agents(params, step, sL, s):
@@ -121,7 +123,9 @@ def withdraw_calculation(params, step, sL, s):
 
     spend = s['30_day_spend']
     timestep = s['timestep']
-
+    
+    maxWithdraw = maxAmountofWithdraw
+    
     division =  timestep % 30  == 0
 
     if division == True:
@@ -134,9 +138,25 @@ def withdraw_calculation(params, step, sL, s):
                         spent = spend[i]
                         amount = spent * redeemPercentage
                         if network.nodes[i]['tokens'] > amount:
-                            withdraw[i] = amount
+                            if maxWithdraw - amount > 0:
+                                withdraw[i] = amount
+                                maxWithdraw = maxWithdraw - amount
+                            else:
+                                if maxWithdraw > 1:
+                                    withdraw[i] = maxWithdraw
+                                    maxWithdraw = 0
+                                else:
+                                    pass
                         elif  network.nodes[i]['tokens'] < amount:
-                            withdraw[i] = network.nodes[i]['tokens']
+                            if maxWithdraw - network.nodes[i]['tokens'] > 0:
+                                withdraw[i] = network.nodes[i]['tokens']
+                                maxWithdraw = maxWithdraw - network.nodes[i]['tokens']
+                            else:
+                                if maxWithdraw > 1:
+                                    withdraw[i] = maxWithdraw
+                                    maxWithdraw = 0
+                                else:
+                                    pass
                     else:
                         pass
                 else:

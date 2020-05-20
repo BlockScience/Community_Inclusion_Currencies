@@ -12,7 +12,7 @@ idealFiat = 5000
 idealCIC = 200000
 varianceCIC = 50000
 varianceFiat = 1000
-unadjustedPerAgent = 50
+unadjustedPerAgent = 1000
 inventory_controller = False
 
 

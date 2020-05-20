@@ -50,16 +50,14 @@ def velocity_of_money(params, step, sL, s):
 
     KPISpend = s['KPISpend']
 
-    # TODO: Moving average for state variable
     T = []
     for i,j in KPISpend.items():
         T.append(j)
         
     T = sum(T)
     
-    # TODO Moving average for state variable 
     M = []
-    for i in agents:
+    for i in clusters:
         M.append(network.nodes[i]['tokens'] + network.nodes[i]['native_currency'])
         
     M = sum(M)

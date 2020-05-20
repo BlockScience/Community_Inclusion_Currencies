@@ -7,21 +7,20 @@ from .supportingFunctions import *
 from collections import OrderedDict
 
 # Parameters
-FrequencyOfAllocation = 45 # every two weeks
+FrequencyOfAllocation = 7 
 idealFiat = 5000
 idealCIC = 200000
 varianceCIC = 50000
 varianceFiat = 1000
-unadjustedPerAgent = 50
+unadjustedPerAgent = 1000
+inventory_controller = False
 
 
 
-
-agentAllocation = {'a':[1,1],'b':[1,1],'c':[1,1], # agent:[centrality,allocationValue]
-                   'd':[1,1],'e':[1,1],'f':[1,1],
-                   'g':[1,1],'h':[1,1],'i':[1,1],
-                   'j':[1,1],'k':[1,1],'l':[1,1],
-                   'm':[1,1],'o':[1,1],'p':[1,1]}
+agentAllocation = {'0':[1,1],'1':[1,1],'2':[1,1], # agent:[centrality,allocationValue]
+                   '3':[1,1],'4':[1,1],'5':[1,1],
+                   '6':[1,1],'7':[1,1],'8':[1,1],
+                   '9':[1,1]}
 
 # Behaviors
 def disbursement_to_agents(params, step, sL, s):
@@ -51,8 +50,6 @@ def disbursement_to_agents(params, step, sL, s):
 def inventory_controller(params, step, sL, s):
     '''
     Monetary policy hysteresis conservation allocation between fiat and cic reserves.
-    
-    # TODO: If scarcity on both sides, add feedback to reduce percentage able to withdraw, frequency you can redeem, or redeem at less than par. 
     '''
     fiatBalance = s['operatorFiatBalance']
     cicBalance = s['operatorCICBalance']
@@ -62,10 +59,13 @@ def inventory_controller(params, step, sL, s):
 
     updatedCIC = cicBalance
     updatedFiat = fiatBalance
-
-    #decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,variance,updatedFiat)
-    decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,varianceCIC,updatedFiat,varianceFiat,idealFiat)
-
+    
+    if inventory_controller == True:
+        decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,varianceCIC,updatedFiat,varianceFiat,idealFiat)
+    else:
+        decision = 'none'
+        amt = 0 
+        
     if decision == 'burn':
         try:
             deltaR, realized_price = withdraw(amt,updatedFiat,updatedCIC, V0, kappa)
@@ -129,7 +129,7 @@ def update_agent_tokens(params,step,sL,s,_input):
     amount = _input['amount']
 
     if distribute == 'Yes':
-        for i in agents:
+        for i in clusters:
             network.nodes[i]['tokens'] = network.nodes[i]['tokens'] + amount[i]
     else:
         pass

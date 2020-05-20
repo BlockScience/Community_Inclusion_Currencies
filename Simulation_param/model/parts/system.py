@@ -5,11 +5,15 @@ from cadCAD.configuration.utils import access_block
 from .initialization import *
 from .supportingFunctions import *
 from collections import OrderedDict
+from .subpopulation_clusters import *
+
 
 # Parameters
-agentsMinus = 2
+agentsMinus = 1
 # percentage of balance a user can redeem
 redeemPercentage = 0.5
+# maximum withdraw amount per 30 days
+maxAmountofWithdraw = 30000
 
 # Behaviors
 def choose_agents(params, step, sL, s):
@@ -19,10 +23,28 @@ def choose_agents(params, step, sL, s):
     '''
     outboundAgents = np.random.choice(mixingAgents,size=len(mixingAgents)-agentsMinus).tolist()
     inboundAgents = np.random.choice(mixingAgents,size=len(mixingAgents)-agentsMinus).tolist()
-    stepDemands = np.random.uniform(low=1, high=500, size=len(mixingAgents)-agentsMinus).astype(int)
     
+    demands = []
+    for i in outboundAgents:
+        if i == 'external':
+            demands.append(np.random.normal(sum(clustersMu)/len(clustersMu), sum(clustersSigma)/len(clustersMu), 1)[0])
+        else:
+            demands.append(np.random.normal(clustersMu[int(i)], clustersSigma[int(i)], 1)[0])
 
-    stepUtilities = np.random.choice(list(UtilityTypesOrdered.keys()),size=len(mixingAgents)-agentsMinus,p=list(utilityTypesProbability.values())).tolist()
+    stepDemands = []
+    for i in demands:
+        if i > 0:
+            stepDemands.append(round(i,2))
+        else:
+            stepDemands.append(1)
+
+
+
+    stepUtilities = []
+
+    for i in outboundAgents:
+            stepUtilities.append(np.random.choice(list(UtilityTypesOrdered[str(i)].keys()),size=1,p=list(utilityTypesProbability[str(i)].values()))[0])
+
 
     return {'outboundAgents':outboundAgents,'inboundAgents':inboundAgents,'stepDemands':stepDemands,'stepUtilities':stepUtilities}
 
@@ -53,7 +75,10 @@ def spend_allocation(params, step, sL, s):
         rankOrderDemand = {}
         for j in network.adj[i]:
             try:
-                rankOrder[j] = UtilityTypesOrdered[network.adj[i][j]['utility']]
+                #print(network.adj[i][j]['utility'])
+                #print(network.adj[i][j])
+                utility = network.adj[i][j]['utility']
+                rankOrder[j] = UtilityTypesOrdered[i][utility]
                 rankOrderDemand[j] = network.adj[i][j]['demand']
                 rankOrder = dict(OrderedDict(sorted(rankOrder.items(), key=lambda v: v, reverse=False)))
                 for k in rankOrder:
@@ -98,7 +123,9 @@ def withdraw_calculation(params, step, sL, s):
 
     spend = s['30_day_spend']
     timestep = s['timestep']
-
+    
+    maxWithdraw = maxAmountofWithdraw
+    
     division =  timestep % 30  == 0
 
     if division == True:
@@ -111,9 +138,25 @@ def withdraw_calculation(params, step, sL, s):
                         spent = spend[i]
                         amount = spent * redeemPercentage
                         if network.nodes[i]['tokens'] > amount:
-                            withdraw[i] = amount
+                            if maxWithdraw - amount > 0:
+                                withdraw[i] = amount
+                                maxWithdraw = maxWithdraw - amount
+                            else:
+                                if maxWithdraw > 1:
+                                    withdraw[i] = maxWithdraw
+                                    maxWithdraw = 0
+                                else:
+                                    pass
                         elif  network.nodes[i]['tokens'] < amount:
-                            withdraw[i] = network.nodes[i]['tokens']
+                            if maxWithdraw - network.nodes[i]['tokens'] > 0:
+                                withdraw[i] = network.nodes[i]['tokens']
+                                maxWithdraw = maxWithdraw - network.nodes[i]['tokens']
+                            else:
+                                if maxWithdraw > 1:
+                                    withdraw[i] = maxWithdraw
+                                    maxWithdraw = 0
+                                else:
+                                    pass
                     else:
                         pass
                 else:
@@ -239,7 +282,7 @@ def update_node_spend(params, step, sL, s,_input):
 
 def update_withdraw(params, step, sL, s,_input):
     '''
-    Update flow sstate variable with the aggregated amount of shillings withdrawn
+    Update flow state variable with the aggregated amount of shillings withdrawn
     '''
     y = 'withdraw'
     x = s['withdraw']
@@ -277,3 +320,39 @@ def update_network_withraw(params, step, sL, s,_input):
     x = network
     return (y,x)
 
+
+def update_operatorFiatBalance_withdraw(params, step, sL, s,_input):
+    '''
+    Update flow state variable with the aggregated amount of shillings withdrawn
+    '''
+    y = 'operatorFiatBalance'
+    x = s['operatorFiatBalance']
+    if _input['withdraw']:
+        withdraw = _input['withdraw']
+        withdrawnCICSum = []
+        for i,j in withdraw.items():
+            withdrawnCICSum.append(j)
+        x = x - sum(withdrawnCICSum)
+    else:
+        pass
+
+    return (y,x)
+
+
+
+def update_operatorCICBalance_withdraw(params, step, sL, s,_input):
+    '''
+    Update flow state variable with the aggregated amount of shillings withdrawn
+    '''
+    y = 'operatorCICBalance'
+    x = s['operatorCICBalance']
+    if _input['withdraw']:
+        withdraw = _input['withdraw']
+        withdrawnCICSum = []
+        for i,j in withdraw.items():
+            withdrawnCICSum.append(j)
+        x = x + sum(withdrawnCICSum)
+    else:
+        pass
+
+    return (y,x)
