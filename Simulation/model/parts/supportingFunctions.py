@@ -127,8 +127,11 @@ def spendCalculation(agentToPay,agentToReceive,rankOrderDemand,maxSpendCurrency,
     if verdict_currency == 'Enough'and verdict_cic == 'Enough':
         spend = rankOrderDemand[agentToReceive]
     
-    elif maxSpendCurrency[agentToPay] > 0:
-        spend = maxSpendCurrency[agentToPay]
+    elif maxSpendCurrency[agentToPay] > 0 and maxSpendTokens[agentToPay] > 0:
+        if maxSpendTokens[agentToPay] > maxSpendCurrency[agentToPay]:
+            spend = maxSpendCurrency[agentToPay]
+        elif maxSpendCurrency[agentToPay] > maxSpendTokens[agentToPay]:
+            spend = maxSpendTokens[agentToPay]
     else:
         spend = 0
         
@@ -176,12 +179,14 @@ def DictionaryMergeAddition(inflow,outflow):
 def mint_burn_logic_control(idealCIC,actualCIC,varianceCIC,actualFiat,varianceFiat,idealFiat):
     '''
     Inventory control function to test if the current balance is in an acceptable range. Tolerance range 
+    
+        Test: mint_burn_logic_control(100000,subset['operatorCICBalance'][499],30000,subset['operatorFiatBalance'][499],30000,100000)
     '''
     if idealFiat - varianceFiat <= actualFiat <= idealFiat + (2*varianceFiat):
         decision = 'none'
         amount = 0
     else:
-        if (idealFiat + varianceFiat) > actualFiat:
+        if (idealFiat - varianceFiat) > actualFiat:
             decision = 'burn'
             amount = (idealFiat + varianceFiat) - actualFiat
         else:

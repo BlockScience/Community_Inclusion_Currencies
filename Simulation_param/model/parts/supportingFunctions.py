@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.stats import gamma
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 
 default_kappa= 4
 default_exit_tax = .02
@@ -129,8 +127,11 @@ def spendCalculation(agentToPay,agentToReceive,rankOrderDemand,maxSpendCurrency,
     if verdict_currency == 'Enough'and verdict_cic == 'Enough':
         spend = rankOrderDemand[agentToReceive]
     
-    elif maxSpendCurrency[agentToPay] > 0:
-        spend = maxSpendCurrency[agentToPay]
+    elif maxSpendCurrency[agentToPay] > 0 and maxSpendTokens[agentToPay] > 0:
+        if maxSpendTokens[agentToPay] > maxSpendCurrency[agentToPay]:
+            spend = maxSpendCurrency[agentToPay]
+        elif maxSpendCurrency[agentToPay] > maxSpendTokens[agentToPay]:
+            spend = maxSpendTokens[agentToPay]
     else:
         spend = 0
         
@@ -175,36 +176,38 @@ def DictionaryMergeAddition(inflow,outflow):
         
     return merged
 
-def mint_burn_logic_control(ideal,actual,variance,fiat,fiat_variance,ideal_fiat):
+def mint_burn_logic_control(idealCIC,actualCIC,varianceCIC,actualFiat,varianceFiat,idealFiat):
     '''
     Inventory control function to test if the current balance is in an acceptable range. Tolerance range 
+    
+        Test: mint_burn_logic_control(100000,subset['operatorCICBalance'][499],30000,subset['operatorFiatBalance'][499],30000,100000)
     '''
-    if ideal - variance <= actual <= ideal + (2*variance):
+    if idealFiat - varianceFiat <= actualFiat <= idealFiat + (2*varianceFiat):
         decision = 'none'
         amount = 0
     else:
-        if (ideal + variance) > actual:
-            decision = 'mint'
-            amount = (ideal + variance) - actual
+        if (idealFiat - varianceFiat) > actualFiat:
+            decision = 'burn'
+            amount = (idealFiat + varianceFiat) - actualFiat
         else:
             pass
-        if actual > (ideal + variance):
-            decision = 'burn'
-            amount = actual - (ideal + variance) 
+        if actualFiat > (idealFiat + varianceFiat):
+            decision = 'mint'
+            amount = actualFiat - (idealFiat + varianceFiat) 
         else:
             pass
 
     if decision == 'mint':
-        if fiat < (ideal_fiat - fiat_variance):
-            if amount > fiat:
+        if actualCIC < (idealCIC - varianceCIC):
+            if amount > actualCIC:
                 decision = 'none'
                 amount = 0
             else:
                 pass
     if decision == 'none':
-        if fiat < (ideal_fiat - fiat_variance):
+        if actualCIC < (idealCIC - varianceCIC):
             decision = 'mint'
-            amount = (ideal_fiat-fiat_variance)
+            amount = (idealCIC-varianceCIC)
         else:
             pass
     
@@ -245,49 +248,6 @@ def aggregate_runs(df,aggregate_dimension):
     return mean_df,median_df,std_df,min_df
 
 
-
-def plot_averaged_runs(df,aggregate_dimension,x, y,run_count,lx=False,ly=False, suppMin=False):
-    '''
-    Function to plot the mean, median, etc of the monte carlo runs along a single variable.
-    Parameters:
-    df: dataframe name
-    aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
-    x = x axis variable for plotting
-    y = y axis variable for plotting
-    run_count = the number of monte carlo simulations
-    lx = True/False for if the x axis should be logged
-    ly = True/False for if the x axis should be logged
-    suppMin: True/False for if the miniumum value should be plotted
-    Note: Run aggregate_runs before using this function
-    Example run:
-    '''
-    mean_df,median_df,std_df,min_df = aggregate_runs(df,aggregate_dimension)
-
-    plt.figure(figsize=(10,6))
-    if not(suppMin):
-        plt.plot(mean_df[x].values, mean_df[y].values,
-             mean_df[x].values,median_df[y].values,
-             mean_df[x].values,mean_df[y].values+std_df[y].values,
-             mean_df[x].values,min_df[y].values)
-        plt.legend(['mean', 'median', 'mean+ 1*std', 'min'],bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-    else:
-        plt.plot(mean_df[x].values, mean_df[y].values,
-             mean_df[x].values,median_df[y].values,
-             mean_df[x].values,mean_df[y].values+std_df[y].values,
-             mean_df[x].values,mean_df[y].values-std_df[y].values)
-        plt.legend(['mean', 'median', 'mean+ 1*std', 'mean - 1*std'],bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-    plt.xlabel(x)
-    plt.ylabel(y)
-    title_text = 'Performance of ' + y + ' over all of ' + str(run_count) + ' Monte Carlo runs'
-    plt.title(title_text)
-    if lx:
-        plt.xscale('log')
-
-    if ly:
-        plt.yscale('log')
-
 def plot_median_with_quantiles(df,aggregate_dimension,x, y):
     '''
     Function to plot the median and 1st and 3rd quartiles of the monte carlo runs along a single variable.
@@ -296,6 +256,7 @@ def plot_median_with_quantiles(df,aggregate_dimension,x, y):
     aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
     x = x axis variable for plotting
     y = y axis variable for plotting
+
     Example run:
     plot_median_with_quantiles(df,'timestep','timestep','AggregatedAgentSpend')
     '''
@@ -322,6 +283,7 @@ def plot_median_with_quantiles_annotation(df,aggregate_dimension,x, y):
     aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
     x = x axis variable for plotting
     y = y axis variable for plotting
+
     Example run:
     plot_median_with_quantiles(df,'timestep','timestep','AggregatedAgentSpend')
     '''
@@ -375,9 +337,75 @@ def first_five_plot(df,aggregate_dimension,x,y,run_count):
     plt.ylabel(y)
     title_text = 'Performance of ' + y + ' over the First ' + str(runs) + ' Monte Carlo Runs'
     plt.title(title_text)
-    #plt.savefig(y +'_FirstFiveRuns.jpeg')
     
     
+def plot_fan_chart(df,aggregate_dimension,x, y,lx=False,ly=False,density_hack=True):
+    def q10(x):
+        return x.quantile(0.1)
+
+    def q20(x):
+        return x.quantile(0.2)
+
+    def q30(x):
+        return x.quantile(0.3)
+
+    def q40(x):
+        return x.quantile(0.4)
+
+    def q60(x):
+        return x.quantile(0.6)
+
+    def q70(x):
+        return x.quantile(0.7)
+
+    def q80(x):
+        return x.quantile(0.8)
+
+    def q90(x):
+        return x.quantile(0.9)
+
+    run_count = max(df.run)
+
+    agg_metrics = [q10, q20, q30, q40, 'median', q60, q70, q80, q90]
+    agg_df = df.groupby(aggregate_dimension).agg({y: agg_metrics})
+    agg_metrics = agg_df.columns.levels[1].values
+    agg_df.columns = ['_'.join(col).strip() for col in agg_df.columns.values]
+    plt.figure(figsize=(10,6))
+
+    df = agg_df.reset_index()
+    lines = plt.plot(df[x], df[f'{y}_median'])
+    color = lines[0].get_color()
+    if density_hack:
+        avg_iqr = []
+        for i in range(len(agg_metrics)-1):
+            m = (agg_metrics[i], agg_metrics[i+1])
+            iqr = df[f'{y}_{m[1]}'] - df[f'{y}_{m[0]}']
+            avg_iqr.append(iqr.sum())
+        inv_avg_iqr = [1/i for i in avg_iqr]
+        norm_avg_iqr = [i/max(inv_avg_iqr) for i in inv_avg_iqr]
+        i = 0
+        while i<len(agg_metrics)-1:
+            m = (agg_metrics[i], agg_metrics[i+1])
+            plt.fill_between(df[x], df[f'{y}_{m[0]}'], df[f'{y}_{m[1]}'], alpha=0.8*norm_avg_iqr[i], facecolor=color, edgecolor=None)
+            i += 1
+    else:
+        i = 0
+        while i<len(agg_metrics)/2:
+            m = (agg_metrics[i], agg_metrics[-1-i])
+            plt.fill_between(df[x], df[f'{y}_{m[0]}'], df[f'{y}_{m[1]}'], alpha=0.3, color=color)
+            i += 1
+
+    plt.xlabel(x)
+    plt.ylabel(y)
+    title_text = 'Distribution of ' + y + ' over all of ' + str(run_count) + ' Monte Carlo runs'
+    plt.title(title_text)
+    plt.legend(['Median', 'Interquantile Ranges'])
+    if lx:
+        plt.xscale('log')
+    if ly:
+        plt.yscale('log')
+        
+        
 def aggregate_runs_param_mc(df,aggregate_dimension):
     '''
     Function to aggregate the monte carlo runs along a single dimension.

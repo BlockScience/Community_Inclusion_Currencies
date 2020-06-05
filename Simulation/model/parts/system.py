@@ -9,7 +9,7 @@ from .subpopulation_clusters import *
 
 
 # Parameters
-agentsMinus = 1
+agentsMinus = 5
 # percentage of balance a user can redeem
 redeemPercentage = 0.5
 # maximum withdraw amount per 30 days
@@ -165,8 +165,7 @@ def withdraw_calculation(params, step, sL, s):
             pass
     else:
         pass
-
-
+    
     return {'withdraw':withdraw}
 
 # Mechanisms 

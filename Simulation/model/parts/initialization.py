@@ -18,6 +18,8 @@ drip = 10000
 
 # starting operatorFiatBalance
 initialOperatingFiatBalance = 100000
+# starting operatorCICBalance
+initialOperatingCICBalance = 100000
 
 redCrossDripFrequency = 90 # days
 
@@ -30,8 +32,7 @@ chama = ['chama_1','chama_2','chama_3','chama_4']
 # traders
 traders = ['ta','tb','tc'] #only trading on the cic. Link to external and cic not to other agents
 
-allAgents = clusters + system
-
+allAgents = clusters.copy() + system
 
 
 R0 =  40000 #xDAI
@@ -101,5 +102,6 @@ def create_network():
     pos = nx.spring_layout(network,pos=nx.get_node_attributes(network,'pos'),fixed=nx.get_node_attributes(network,'pos'),seed=10)
     nx.draw(network,node_color = color_map,pos=pos,with_labels=True,alpha=0.7)
     plt.savefig('images/graph.png')
+    plt.figure(figsize=(20,20)) 
     plt.show()
     return network

@@ -4,23 +4,17 @@ import pandas as pd
 from cadCAD.configuration.utils import access_block
 from .initialization import *
 from .supportingFunctions import *
+from .subpopulation_clusters import *
 from collections import OrderedDict
 
 # Parameters
-FrequencyOfAllocation = 7 
-idealFiat = 5000
-idealCIC = 200000
-varianceCIC = 50000
-varianceFiat = 1000
-unadjustedPerAgent = 1000
-inventory_controller = False
+FrequencyOfAllocation = 30 
+idealFiat = 100000
+idealCIC = 100000
+varianceCIC = 30000
+varianceFiat = 30000
+unadjustedPerAgent = 100
 
-
-
-agentAllocation = {'0':[1,1],'1':[1,1],'2':[1,1], # agent:[centrality,allocationValue]
-                   '3':[1,1],'4':[1,1],'5':[1,1],
-                   '6':[1,1],'7':[1,1],'8':[1,1],
-                   '9':[1,1]}
 
 # Behaviors
 def disbursement_to_agents(params, step, sL, s):
@@ -60,11 +54,12 @@ def inventory_controller(params, step, sL, s):
     updatedCIC = cicBalance
     updatedFiat = fiatBalance
     
-    if inventory_controller == True:
-        decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,varianceCIC,updatedFiat,varianceFiat,idealFiat)
-    else:
-        decision = 'none'
-        amt = 0 
+    # Toggle inventory controller 
+    # on
+    #decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,varianceCIC,updatedFiat,varianceFiat,idealFiat)
+    # off
+    decision = 'none'
+    amt = 0 
         
     if decision == 'burn':
         try:
@@ -262,6 +257,7 @@ def update_totalBurned(params,step,sL,s,_input):
 
     return (y,x)
 
+
 def update_fundsInProcess(params,step,sL,s,_input):
     '''
     '''
@@ -285,3 +281,42 @@ def update_fundsInProcess(params,step,sL,s,_input):
 
     return (y,x)
 
+def update_network_mintBurn(params, step, sL, s,_input):
+    '''
+    Update network for minting and burning 
+    '''
+    y = 'network'
+    network = s['network']
+
+    try:
+        if _input['fundsInProcess']['decision'][0] == 'mint':
+            amountCIC = abs(_input['fundsInProcess']['cic'][0])
+            amountFiat = abs(_input['fundsInProcess']['shilling'][0])
+            decision = 'mint'
+        elif _input['fundsInProcess']['decision'][0] == 'burn':
+            amountCIC = abs(_input['fundsInProcess']['cic'][0])
+            amountFiat = abs(_input['fundsInProcess']['shilling'][0])
+            decision = 'burn'
+        else:
+            amountCIC = 0
+            amountFiat = 0
+            decision = 'none'
+    except:
+            amountCIC = 0
+            amountFiat = 0
+            decision = 'none'
+        
+        
+    if decision == 'mint':
+        # update cic node
+        network.nodes['cic']['native_currency'] = network.nodes[i]['native_currency']  + amountFiat
+        network.nodes['cic']['tokens'] = network.nodes[i]['tokens'] + amountCIC
+    elif decision == 'burn':
+        # update cic node
+        network.nodes['cic']['native_currency'] = network.nodes[i]['native_currency'] - amountFiat
+        network.nodes['cic']['tokens'] = network.nodes[i]['tokens'] - amountCIC
+    elif decision == 'none':
+        pass
+
+    x = network
+    return (y,x)

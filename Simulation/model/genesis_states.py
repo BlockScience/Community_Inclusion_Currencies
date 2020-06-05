@@ -14,7 +14,7 @@ genesis_states = {
     'outboundAgents':[],
     'inboundAgents':[],
     'operatorFiatBalance': initialOperatingFiatBalance,
-    'operatorCICBalance': S0,
+    'operatorCICBalance': initialOperatingCICBalance,
     'fundsInProcess': {'timestep':[],'decision':[],'cic':[],'shilling':[]},
     'totalDistributedToAgents':0,
     'totalMinted':0,

@@ -65,9 +65,11 @@ partial_state_update_block = {
         'operatorCICBalance':update_operator_cicBalance, 
         'totalMinted': update_totalMinted,
         'totalBurned':update_totalBurned,
-        'fundsInProcess':update_fundsInProcess
+        'fundsInProcess':update_fundsInProcess,
+        'network':update_network_mintBurn
         }
     },
+    
     # KPIs
     'KPIs': {
         'policies': {
