@@ -20,8 +20,7 @@ See [cadCAD on Github](https://github.com/BlockScience/cadCAD/tree/master/tutori
 [Click here](Simulation/CIC_Network_cadCAD_model.ipynb)
 
 ### Parameter sweep 
-[Click here](Simulation_param/CIC_Network_cadCAD_model_params.ipynb)
-
+[Click here](Simulation_param/CIC_Network_cadCAD_model_params_Template.ipynb)
 
 ### Colab - last refresh and synchronisation date: 5-26-2020.
 
