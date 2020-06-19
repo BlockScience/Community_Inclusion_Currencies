@@ -10,17 +10,17 @@ See [cadCAD on Github](https://github.com/BlockScience/cadCAD/tree/master/tutori
 ## Simulations
 
 ### Theory work
-[Click here](BondingCurve/cic_initialization.ipynb)
+[Click here](https://nbviewer.jupyter.org/github/BlockScience/Community_Inclusion_Currencies/blob/master/BondingCurve/cic_initialization.ipynb)
 
 
 ### Subpopulation initialization 
-[Click here](SubpopulationGenerator/Subpopulation_Construction.ipynb)
+[Click here](https://nbviewer.jupyter.org/github/BlockScience/Community_Inclusion_Currencies/blob/master/SubpopulationGenerator/Subpopulation_Construction.ipynb)
 
 ### Simulation work
-[Click here](Simulation/CIC_Network_cadCAD_model.ipynb)
+[Click here](https://nbviewer.jupyter.org/github/BlockScience/Community_Inclusion_Currencies/blob/master/Simulation/CIC_Network_cadCAD_model.ipynb)
 
 ### Parameter sweep 
-[Click here](Simulation_param/CIC_Network_cadCAD_model_params_Template.ipynb)
+[Click here](https://nbviewer.jupyter.org/github/BlockScience/Community_Inclusion_Currencies/blob/master/Simulation_param/CIC_Network_cadCAD_model_params_Template.ipynb)
 
 ### Colab - last refresh and synchronisation date: 5-26-2020.
 
