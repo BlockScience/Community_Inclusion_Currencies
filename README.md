@@ -15,7 +15,7 @@ To download the specific version of this code, run the following command in your
 
 ```git clone -b paper https://github.com/BlockScience/Community_Inclusion_Currencies.git``` 
 
-Then run ```cd Community_Inclusion_Currencies.git``` to enter the repository. Finally, run ```jupyter notebook``` to open a notebook server to run the various notebooks in this repository. 
+Then run ```cd Community_Inclusion_Currencies``` to enter the repository. Finally, run ```jupyter notebook``` to open a notebook server to run the various notebooks in this repository. 
 
 
 ## Simulations
