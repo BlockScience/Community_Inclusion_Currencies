@@ -1,7 +1,6 @@
-
 import numpy as np
-from .initialization import *
-from .supportingFunctions import *
+from Simulation_param.model.parts.initialization import *
+from Simulation_param.model.parts.supportingFunctions import *
 import networkx as nx
 
 

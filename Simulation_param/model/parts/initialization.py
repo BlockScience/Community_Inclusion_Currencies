@@ -3,8 +3,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-from .supportingFunctions import *
-from .subpopulation_clusters import *
+from Simulation_param.model.parts.supportingFunctions import *
+from Simulation_param.model.parts.subpopulation_clusters import *
 
 # Assumptions:
 # Amount received in shilling when withdraw occurs

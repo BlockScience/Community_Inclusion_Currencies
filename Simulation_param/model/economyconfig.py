@@ -7,8 +7,8 @@ from typing import Dict, List
 from cadCAD.configuration import append_configs
 from cadCAD.configuration.utils import bound_norm_random, ep_time_step, config_sim, access_block
 
-from .genesis_states import genesis_states
-from .partial_state_update_block import partial_state_update_block
+from Simulation_param.model import genesis_states
+from Simulation_param.model import partial_state_update_block
 
 params: Dict[str, List[int]] = {
     'drip_frequency': [30,60,90] # in days
@@ -17,7 +17,7 @@ params: Dict[str, List[int]] = {
 
 sim_config = config_sim({
     'N': 5,
-    'T': range(100), #day 
+    'T': range(10), #day
     'M': params,
 })
 

@@ -1,4 +1,4 @@
-from .parts.initialization import * 
+from Simulation_param.model.parts.initialization import *
 import pandas as pd
 
 genesis_states = { 

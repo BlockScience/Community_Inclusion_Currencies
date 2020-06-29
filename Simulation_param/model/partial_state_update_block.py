@@ -1,7 +1,7 @@
-from .parts.exogenousProcesses import *
-from .parts.kpis import *
-from .parts.system import *
-from .parts.operatorentity import *
+from Simulation_param.model.parts.exogenousProcesses import *
+from Simulation_param.model.parts.kpis import *
+from Simulation_param.model.parts.system import *
+from Simulation_param.model.parts.operatorentity import *
 
 partial_state_update_block = {
     # Exogenous

@@ -2,9 +2,9 @@
 import numpy as np
 import pandas as pd
 from cadCAD.configuration.utils import access_block
-from .initialization import *
-from .supportingFunctions import *
-from .subpopulation_clusters import *
+from Simulation_param.model.parts.initialization import *
+from Simulation_param.model.parts.supportingFunctions import *
+from Simulation_param.model.parts.subpopulation_clusters import *
 from collections import OrderedDict
 
 # Parameters
