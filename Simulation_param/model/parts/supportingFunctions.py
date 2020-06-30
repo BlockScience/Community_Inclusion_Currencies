@@ -406,62 +406,68 @@ def plot_fan_chart(df,aggregate_dimension,x, y,lx=False,ly=False,density_hack=Tr
         plt.yscale('log')
         
         
-def aggregate_runs_param_mc(df,aggregate_dimension):
+def extract_params(configs,hyperparameter):
     '''
-    Function to aggregate the monte carlo runs along a single dimension.
+    Description:
+    Function to extract param sweep information from simulation configuration
+    
     Parameters:
-    df: dataframe name
-    aggregate_dimension: the dimension you would like to aggregate on, the standard one is timestep.
+    configs: cadCAD configs object
+    hyperparameter: string of the hyperparameter being swept
+    
+    Assumptions:
+    Parameter sweep simulation with M as how is denoted in the sim config.
+    
+    from cadCAD.configuration.utils import configs_as_objs
+
+    Returns
+    
+    list of parameter
+    
     Example run:
-    mean_df,median_df,std_df,min_df = aggregate_runs(df,'timestep')
+    params = extract_params(configs,'drip_frequency')
     '''
-    df = df[df['substep'] == df.substep.max()]
-    mean_df = df.groupby(aggregate_dimension).mean().reset_index()
-    median_df = df.groupby(aggregate_dimension).median().reset_index()
-    #min_df = df.groupby(aggregate_dimension).min().reset_index()
-    #max_df = df.groupby(aggregate_dimension).max().reset_index()
-    return mean_df,median_df
 
-def param_dfs(results,params,swept):
-    mean_df,median_df = aggregate_runs_param_mc(results[0]['result'],'timestep')
-    mean_df[swept] = params[0]
-    median_df[swept] = params[0]
-    #max_df[swept] = params[0]
-    #min_df[swept] = params[0]
-    for i in range(1,len(params)):
-        mean_df_intermediate,median_df_intermediate = aggregate_runs_param_mc(results[i]['result'],'timestep')
-        mean_df_intermediate[swept] = params[i]
-        median_df_intermediate[swept] = params[i]
-        #max_df_intermediate[swept] = params[i]
-        #min_df_intermediate[swept] = params[i]
-        mean_df= pd.concat([mean_df, mean_df_intermediate])
-        median_df= pd.concat([median_df, median_df_intermediate])
-        #max_df= pd.concat([max_df, max_df_intermediate])
-        #min_df= pd.concat([min_df, min_df_intermediate])
-    return mean_df,median_df
+    params = []
+    
+    for i in range(0,len(configs_as_objs(configs))):
+        params.append(configs_as_objs(configs)[i].sim_config['M'][hyperparameter])
+        
+    return params
 
 
-def param_plot(results,state_var_x, state_var_y, parameter, save_plot = False,**kwargs):
+def param_sweep_plot(df,aggregate_dimension,feature_of_interest,params,description_of_sweep):
     '''
-    Results (df) is the dataframe (concatenated list of results dictionaries)
-    length = intreger, number of parameter values
-    Enter state variable name as a string for x and y. Enter the swept parameter name as a string.
-    y_label kwarg for custom y-label and title reference
-    x_label kwarg for custom x-axis label
+    Description:
+    Function to plot parameter sweep results
+    
+    Parameters:
+    df: Pandas dataframe of cadCAD parameter sweep simulation results
+    aggregate_dimension: string. Dimension to aggregate on, such as timestep
+    feature_of_interest: string. Feature, or column of interest to plot. The 'y' variable in matplotlib
+    params: a list of the swept parameters (can be obtained from extract_params)
+    description_of_sweep: descriptive text, as a string, to describe what the parameter being swept is, 
+    such as 'Red Cross Drip Frequency'
+    
+    Assumptions:
+    Parameter sweep simulation
+    
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    Returns
+    Plot of swept parameter and its visual effect on the feature of interest
+
+    
+    Example run:
+    param_sweep_plot(df,'timestep','AggregatedAgentSpend',params,'Red Cross Drip Frequency')
+    
     '''
-    sns.scatterplot(x=state_var_x, y = state_var_y, hue = parameter, style= parameter, palette  = 'coolwarm',alpha=1, data = results, legend="full")
-    title_text = 'Effect of ' + parameter + ' Parameter Sweep on ' + state_var_y
-    for key, value in kwargs.items():
-        if key == 'y_label':
-            plt.ylabel(value)
-            title_text = 'Effect of ' + parameter + ' Parameter Sweep on ' + value
-        if key == 'x_label':
-            plt.xlabel(value)
-    plt.title(title_text)
-    if save_plot == True:
-        filename = state_var_y + state_var_x + parameter + 'plot.png'
-# #         plt.savefig('static/images/' + filename)
-#         plt.savefig(filename)
-        lgd = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-        #title_text = 'Market Volatility versus Normalized Liquid Token Supply for All Runs'
-        plt.title(title_text)
+    df = df[df['substep'] == df['substep'].max()]
+    
+    for i in df.simulation.unique():
+            sns.scatterplot(x='timestep', y = feature_of_interest,alpha=1,data = df[df['simulation'] == i].groupby(aggregate_dimension).median().reset_index(), legend="full")
+            title_text = 'Effect of ' + description_of_sweep + ' Parameter Sweep on ' + feature_of_interest
+            plt.title(title_text)
+            plt.legend(params)
+    plt.show()
