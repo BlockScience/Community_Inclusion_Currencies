@@ -1,5 +1,5 @@
 # Community_Inclusion_Currencies
-Repository for Complex Systems model of the Grassroots Economics Community Inclusion Currency project with the Red Cross. The Colab notebooks are able to be run and played with by anyone who uses the link. Modeling is built in [cadCAD](https://cadcad.org/). 
+Repository for Complex Systems model of the [Grassroots Economics](https://www.grassrootseconomics.org/) Community Inclusion Currency ([CIC](http://cichub.org/))  project with the Red Cross. The Colab notebooks are able to be run and played with by anyone who uses the link. Modeling is built in [cadCAD](https://cadcad.org/). 
 
 ## What is cadCAD?
 cadCAD (complex adaptive dynamics Computer-Aided Design) is a python based modeling framework for research, validation, and Computer Aided Design of complex systems. Given a model of a complex system, cadCAD can simulate the impact that a set of actions might have on it. This helps users make informed, rigorously tested decisions on how best to modify or interact with the system in order to achieve their goals. cadCAD supports different system modeling approaches and can be easily integrated with common empirical data science workflows. Monte Carlo methods, A/B testing and parameter sweeping features are natively supported and optimized for.
