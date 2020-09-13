@@ -7,8 +7,8 @@ cadCAD (complex adaptive dynamics Computer-Aided Design) is a python based model
 See [cadCAD on Github](https://github.com/BlockScience/cadCAD/tree/master/tutorials) for some tutorials on how to use cadCAD.
 
 ## Reproducibility
-In order to reperform this code, we recommend the researcher use the following link to download https://www.anaconda.com/products/individual to download Python 3.7. To install the specific version of cadCAD this repository was built with, run the following code:
-```pip install cadCAD==0.3.1```
+In order to reperform this code, we recommend the researcher use the following link to download https://www.anaconda.com/products/individual to download Python 3.7+. To install the specific version of cadCAD this repository was built with, run the following code:
+```pip install cadCAD==0.4.22```
 
 To download the specific version of this code, run the following command in your command line:
 
