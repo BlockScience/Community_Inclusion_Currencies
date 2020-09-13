@@ -6,7 +6,7 @@ from .initialization import *
 from .supportingFunctions import *
 from collections import OrderedDict
 from .subpopulation_clusters import *
-
+#import random
 
 # Parameters
 agentsMinus = 5
@@ -15,20 +15,26 @@ redeemPercentage = 0.5
 # maximum withdraw amount per 30 days
 maxAmountofWithdraw = 30000
 
+
 # Behaviors
 def choose_agents(params, step, sL, s):
     '''
     Choose agents to interact during the given timestep and create their demand from a uniform distribution. 
     Based on probability, choose utility. 
     '''
+#     outboundAgents = random.choices(mixingAgents, k=len(mixingAgents)-agentsMinus)
+#     inboundAgents = random.choices(mixingAgents, k=len(mixingAgents)-agentsMinus)
+
     outboundAgents = np.random.choice(mixingAgents,size=len(mixingAgents)-agentsMinus).tolist()
     inboundAgents = np.random.choice(mixingAgents,size=len(mixingAgents)-agentsMinus).tolist()
     
     demands = []
     for i in outboundAgents:
         if i == 'external':
+            #demands.append(random.gauss(sum(clustersMu)/len(clustersMu), sum(clustersSigma)/len(clustersMu))
             demands.append(np.random.normal(sum(clustersMu)/len(clustersMu), sum(clustersSigma)/len(clustersMu), 1)[0])
         else:
+            #demands.append(random.gauss(clustersMu[int(i)], clustersSigma[int(i)])
             demands.append(np.random.normal(clustersMu[int(i)], clustersSigma[int(i)], 1)[0])
 
     stepDemands = []
@@ -44,7 +50,7 @@ def choose_agents(params, step, sL, s):
 
     for i in outboundAgents:
             stepUtilities.append(np.random.choice(list(UtilityTypesOrdered[str(i)].keys()),size=1,p=list(utilityTypesProbability[str(i)].values()))[0])
-
+#stepUtilities.append(random.choice(list(UtilityTypesOrdered[str(i)].keys()),k=1,weights=list(utilityTypesProbability[str(i)].values()))[0])
 
     return {'outboundAgents':outboundAgents,'inboundAgents':inboundAgents,'stepDemands':stepDemands,'stepUtilities':stepUtilities}
 

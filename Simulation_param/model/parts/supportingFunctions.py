@@ -406,68 +406,79 @@ def plot_fan_chart(df,aggregate_dimension,x, y,lx=False,ly=False,density_hack=Tr
         plt.yscale('log')
         
         
-def extract_params(configs,hyperparameter):
+def param_sweep_aggregation(df,aggregation_dimension):
     '''
     Description:
-    Function to extract param sweep information from simulation configuration
+    Function for aggregating parameter sweep runs by mean, median and standard deviation.
     
     Parameters:
-    configs: cadCAD configs object
-    hyperparameter: string of the hyperparameter being swept
+    df: pandas dataframe of cadCAD parameter sweep simulation
+    aggregation_dimension: dimension to aggregate on, e.x. timestep
     
     Assumptions:
-    Parameter sweep simulation with M as how is denoted in the sim config.
+    A cadCAD simulation was completed with an config N > 1 and M.
     
-    from cadCAD.configuration.utils import configs_as_objs
-
-    Returns
-    
-    list of parameter
+    Returns:
+    Lists of parameter subset dataframes for mean, median, and std. The number of dataframes
+    in each list is equal to the simulation N.
     
     Example run:
-    params = extract_params(configs,'drip_frequency')
+    means,medians,stds = param_sweep_aggregation(result,'timestep')
     '''
-
-    params = []
     
-    for i in range(0,len(configs_as_objs(configs))):
-        params.append(configs_as_objs(configs)[i].sim_config['M'][hyperparameter])
+    df = df[df['substep'] == df.substep.max()]
+    subsets = []
+    for i in df.subset.unique():
+        subsets.append(df[df['subset']==i])
+
+    means = []
+    for i in range(0,len(subsets)):
+        means.append(subsets[i].groupby(aggregation_dimension).mean().reset_index())
+
+    medians = []
+    for i in range(0,len(subsets)):
+        medians.append(subsets[i].groupby(aggregation_dimension).median().reset_index())
+
+    stds = []
+    for i in range(0,len(subsets)):
+        stds.append(subsets[i].groupby(aggregation_dimension).std().reset_index())
         
-    return params
+    return means,medians,stds
 
 
-def param_sweep_plot(df,aggregate_dimension,feature_of_interest,params,description_of_sweep):
+def param_plot(dfs,x,y,params,swept,saveFig=False,dims=(10,6)):
     '''
     Description:
-    Function to plot parameter sweep results
+    Function to plot parameter sweep monte carlo results to illustrate the effect the swept 
+    parameter has on the simulation.
     
     Parameters:
-    df: Pandas dataframe of cadCAD parameter sweep simulation results
-    aggregate_dimension: string. Dimension to aggregate on, such as timestep
-    feature_of_interest: string. Feature, or column of interest to plot. The 'y' variable in matplotlib
-    params: a list of the swept parameters (can be obtained from extract_params)
-    description_of_sweep: descriptive text, as a string, to describe what the parameter being swept is, 
-    such as 'Red Cross Drip Frequency'
+    dfs: list of a pandas dataframes calculated in param_sweep_aggregation()
+    x: string of the desired x in the simulation; e.x. 'timestep'
+    y: string of the desired x in the simulation; e.x. 'Velocity'
+    params: list of parameter sweep values to analyze, e.x. [30,60,90]
+    swept: string of the parameter swept, e.e. 'money drip'
+    saveFig: optional boolean if the plot should be saved or not
+    dims: optional figure size values
     
     Assumptions:
-    Parameter sweep simulation
+    A cadCAD simulation was completed with an config N > 1 and M and param_sweep_aggregation() was run
     
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-
-    Returns
-    Plot of swept parameter and its visual effect on the feature of interest
-
+    Returns:
+    Plot
     
     Example run:
-    param_sweep_plot(df,'timestep','AggregatedAgentSpend',params,'Red Cross Drip Frequency')
+    param_plot(medians,'timestep','AggregatedAgentSpend',params,swept)  
     
     '''
-    df = df[df['substep'] == df['substep'].max()]
-    
-    for i in df.simulation.unique():
-            sns.scatterplot(x='timestep', y = feature_of_interest,alpha=1,data = df[df['simulation'] == i].groupby(aggregate_dimension).median().reset_index(), legend="full")
-            title_text = 'Effect of ' + description_of_sweep + ' Parameter Sweep on ' + feature_of_interest
-            plt.title(title_text)
-            plt.legend(params)
-    plt.show()
+    plt.figure(figsize=dims)
+    for i in range(0,len(dfs)):
+        dfs[i][y].plot()
+
+    plt.legend(params)
+    plt.xlabel(x)
+    plt.ylabel(y)
+    title_text = 'Effect of ' + swept + ' Parameter Sweep on ' + y
+    plt.title(title_text)
+    if saveFig:
+        plt.savefig(title_text + '_.png')

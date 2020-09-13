@@ -1,23 +1,24 @@
-from .parts.initialization import * 
+from .parts.initialization import *
 import pandas as pd
 
-genesis_states = { 
+genesis_states = {
     # initial states of the economy
-    'network': create_network(),# networkx market
+    'network': create_network(),  # networkx market
     'KPIDemand': {},
     'KPISpend': {},
     'KPISpendOverDemand': {},
-    'VelocityOfMoney':0,
+    'VelocityOfMoney': 0,
     'startingBalance': {},
     '30_day_spend': {},
-    'withdraw':{},
-    'outboundAgents':[],
-    'inboundAgents':[],
+    'withdraw': {},
+    'outboundAgents': [],
+    'inboundAgents': [],
     'operatorFiatBalance': initialOperatingFiatBalance,
     'operatorCICBalance': initialOperatingCICBalance,
-    'fundsInProcess': {'timestep':[],'decision':[],'cic':[],'shilling':[]},
-    'totalDistributedToAgents':0,
-    'totalMinted':0,
-    'totalBurned':0
+    'fundsInProcess': {'timestep': [], 'decision': [], 'cic': [], 'shilling': []},
+    'totalDistributedToAgents': 0,
+    'totalMinted': 0,
+    'totalBurned': 0,
+    'exitFeeRevenue': 0,
+    'drip': initial_drip_amount
 }
-

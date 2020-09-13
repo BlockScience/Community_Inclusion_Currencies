@@ -8,14 +8,32 @@ from .subpopulation_clusters import *
 from collections import OrderedDict
 
 # Parameters
-FrequencyOfAllocation = 30 
+FrequencyOfAllocation = 30
 idealFiat = 100000
 idealCIC = 100000
 varianceCIC = 30000
 varianceFiat = 30000
 unadjustedPerAgent = 100
+# fee rate percentages
+feeRateExit = 0.05
 
 # Behaviors
+def fee_calculation(params, step, sL, s):
+    '''
+    Calculate fee from withdrawals
+    '''
+    withdraw = s['withdraw']
+    fee = {}
+
+    try:
+        for key, value in withdraw.items():
+            fee[key] = value*feeRateExit
+    except:
+        return {'fee': fee}
+
+    return {'fee': fee}
+
+
 def disbursement_to_agents(params, step, sL, s):
     '''
     Distribute every FrequencyOfAllocation days to agents based off of centrality allocation metric
@@ -24,20 +42,19 @@ def disbursement_to_agents(params, step, sL, s):
     cicBalance = s['operatorCICBalance']
     timestep = s['timestep']
 
-    division =  timestep % FrequencyOfAllocation  == 0
+    division = timestep % FrequencyOfAllocation == 0
 
     if division == True:
-        agentDistribution ={} # agent: amount distributed
-        for i,j in agentAllocation.items():
+        agentDistribution = {}  # agent: amount distributed
+        for i, j in agentAllocation.items():
             agentDistribution[i] = unadjustedPerAgent * agentAllocation[i][1]
         distribute = 'Yes'
-        
+
     else:
         agentDistribution = 0
         distribute = 'No'
 
-
-    return {'distribute':distribute,'amount':agentDistribution}
+    return {'distribute': distribute, 'amount': agentDistribution}
 
 
 def inventory_controller(params, step, sL, s):
@@ -50,20 +67,20 @@ def inventory_controller(params, step, sL, s):
     timestep = s['timestep']
     fundsInProcess = s['fundsInProcess']
 
-
     updatedCIC = cicBalance
     updatedFiat = fiatBalance
-    
-    # Toggle inventory controller 
+
+    # Toggle inventory controller
     # on
     #decision,amt = mint_burn_logic_control(idealCIC,updatedCIC,varianceCIC,updatedFiat,varianceFiat,idealFiat)
     # off
     decision = 'none'
-    amt = 0 
-        
+    amt = 0
+
     if decision == 'burn':
         try:
-            deltaR, realized_price = withdraw(amt,updatedFiat,updatedCIC, V0, kappa)
+            deltaR, realized_price = withdraw(
+                amt, updatedFiat, updatedCIC, V0, kappa)
             # update state
             # fiatBalance = fiatBalance - deltaR
             # cicBalance = cicBalance - amt
@@ -75,10 +92,11 @@ def inventory_controller(params, step, sL, s):
 
             fiatChange = 0
             cicChange = 0
-        
+
     elif decision == 'mint':
         try:
-            deltaS, realized_price = mint(amt,updatedFiat,updatedCIC, V0, kappa)
+            deltaS, realized_price = mint(
+                amt, updatedFiat, updatedCIC, V0, kappa)
             # update state
             # fiatBalance = fiatBalance + amt
             # cicBalance = cicBalance + deltaS
@@ -102,19 +120,55 @@ def inventory_controller(params, step, sL, s):
         fundsInProcess['cic'].append(fiatChange)
         fundsInProcess['shilling'].append(cicChange)
     elif decision == 'burn':
-        fundsInProcess['timestep'].append(timestep +process_lag)
+        fundsInProcess['timestep'].append(timestep + process_lag)
         fundsInProcess['decision'].append(decision)
         fundsInProcess['cic'].append(fiatChange)
         fundsInProcess['shilling'].append(cicChange)
     else:
         pass
-    
-    return {'decision':decision,'fiatChange':fiatChange,'cicChange':cicChange,'fundsInProcess':fundsInProcess}
+
+    return {'decision': decision, 'fiatChange': fiatChange, 'cicChange': cicChange, 'fundsInProcess': fundsInProcess}
 
 
+# Mechanisms
+def update_exit_fee_revenue(params, step, sL, s, _input):
+    '''
+    '''
+    y = 'exitFeeRevenue'
+    fee = _input['fee']
+    x = s['exitFeeRevenue']
+    x += sum(fee.values())
 
-# Mechanisms 
-def update_agent_tokens(params,step,sL,s,_input):
+    return (y, x)
+
+
+def update_operator_balance_with_fee(params, step, sL, s, _input):
+    '''
+    '''
+    y = 'operatorCICBalance'
+    x = s['operatorCICBalance']
+    fee = _input['fee']
+    x += sum(fee.values())
+
+    return (y, x)
+
+
+def deduct_fee_from_withdrawal(params, step, sL, s, _input):
+    '''
+    Made the assumption that fee is deducted from the withdrawal amount.
+    An alternative would be to deduct the fee from agents balance.
+    '''
+    y = 'withdraw'
+    x = s['withdraw']
+    fee = _input['fee']
+
+    if(isinstance(x, (list))):
+        x = {key: x[key] - fee.get(key, 0) for key in x}
+
+    return (y, x)
+
+
+def update_agent_tokens(params, step, sL, s, _input):
     '''
     '''
     y = 'network'
@@ -129,54 +183,57 @@ def update_agent_tokens(params,step,sL,s,_input):
     else:
         pass
 
-    return (y,network)
+    return (y, network)
 
-def update_operator_FromDisbursements(params,step,sL,s,_input):
+
+def update_operator_FromDisbursements(params, step, sL, s, _input):
     '''
     '''
     y = 'operatorCICBalance'
     x = s['operatorCICBalance']
     timestep = s['timestep']
-    
+
     distribute = _input['distribute']
-    amount = _input['amount'] 
+    amount = _input['amount']
 
     if distribute == 'Yes':
         totalDistribution = []
-        for i,j in amount.items():
+        for i, j in amount.items():
             totalDistribution.append(j)
-        
+
         totalDistribution = sum(totalDistribution)
         x = x - totalDistribution
 
     else:
         pass
 
-    return (y,x)
+    return (y, x)
 
-def update_totalDistributedToAgents(params,step,sL,s,_input):
+
+def update_totalDistributedToAgents(params, step, sL, s, _input):
     '''
     '''
     y = 'totalDistributedToAgents'
     x = s['totalDistributedToAgents']
     timestep = s['timestep']
-    
+
     distribute = _input['distribute']
-    amount = _input['amount'] 
+    amount = _input['amount']
 
     if distribute == 'Yes':
         totalDistribution = []
-        for i,j in amount.items():
+        for i, j in amount.items():
             totalDistribution.append(j)
-        
+
         totalDistribution = sum(totalDistribution)
         x = x + totalDistribution
     else:
         pass
 
-    return (y,x)
+    return (y, x)
 
-def update_operator_fiatBalance(params,step,sL,s,_input):
+
+def update_operator_fiatBalance(params, step, sL, s, _input):
     '''
     '''
     y = 'operatorFiatBalance'
@@ -197,10 +254,10 @@ def update_operator_fiatBalance(params,step,sL,s,_input):
     else:
         pass
 
+    return (y, x)
 
-    return (y,x)
 
-def update_operator_cicBalance(params,step,sL,s,_input):
+def update_operator_cicBalance(params, step, sL, s, _input):
     '''
     '''
     y = 'operatorCICBalance'
@@ -222,9 +279,10 @@ def update_operator_cicBalance(params,step,sL,s,_input):
     else:
         pass
 
-    return (y,x)
+    return (y, x)
 
-def update_totalMinted(params,step,sL,s,_input):
+
+def update_totalMinted(params, step, sL, s, _input):
     '''
     '''
     y = 'totalMinted'
@@ -238,10 +296,10 @@ def update_totalMinted(params,step,sL,s,_input):
     except:
         pass
 
+    return (y, x)
 
-    return (y,x)
 
-def update_totalBurned(params,step,sL,s,_input):
+def update_totalBurned(params, step, sL, s, _input):
     '''
     '''
     y = 'totalBurned'
@@ -255,10 +313,10 @@ def update_totalBurned(params,step,sL,s,_input):
     except:
         pass
 
-    return (y,x)
+    return (y, x)
 
 
-def update_fundsInProcess(params,step,sL,s,_input):
+def update_fundsInProcess(params, step, sL, s, _input):
     '''
     '''
     y = 'fundsInProcess'
@@ -279,9 +337,10 @@ def update_fundsInProcess(params,step,sL,s,_input):
     else:
         pass
 
-    return (y,x)
+    return (y, x)
 
-def update_network_mintBurn(params, step, sL, s,_input):
+
+def update_network_mintBurn(params, step, sL, s, _input):
     '''
     Update network for minting and burning 
     '''
@@ -302,14 +361,13 @@ def update_network_mintBurn(params, step, sL, s,_input):
             amountFiat = 0
             decision = 'none'
     except:
-            amountCIC = 0
-            amountFiat = 0
-            decision = 'none'
-        
-        
+        amountCIC = 0
+        amountFiat = 0
+        decision = 'none'
+
     if decision == 'mint':
         # update cic node
-        network.nodes['cic']['native_currency'] = network.nodes['cic']['native_currency']  + amountFiat
+        network.nodes['cic']['native_currency'] = network.nodes['cic']['native_currency'] + amountFiat
         network.nodes['cic']['tokens'] = network.nodes['cic']['tokens'] + amountCIC
     elif decision == 'burn':
         # update cic node
@@ -319,4 +377,4 @@ def update_network_mintBurn(params, step, sL, s,_input):
         pass
 
     x = network
-    return (y,x)
+    return (y, x)
