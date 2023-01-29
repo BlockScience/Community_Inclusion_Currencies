@@ -386,7 +386,10 @@ def plot_fan_chart(df,aggregate_dimension,x, y,lx=False,ly=False,density_hack=Tr
         i = 0
         while i<len(agg_metrics)-1:
             m = (agg_metrics[i], agg_metrics[i+1])
-            plt.fill_between(df[x], df[f'{y}_{m[0]}'], df[f'{y}_{m[1]}'], alpha=0.8*norm_avg_iqr[i], facecolor=color, edgecolor=None)
+            try:
+                plt.fill_between(df[x], df[f'{y}_{m[0]}'], df[f'{y}_{m[1]}'], alpha=0.8*norm_avg_iqr[i], facecolor=color, edgecolor=None)
+            except:
+                plt.fill_between(df[x], df[f'{y}_{m[0]}'], df[f'{y}_{m[1]}'], alpha=0.8, facecolor=color, edgecolor=None)
             i += 1
     else:
         i = 0
